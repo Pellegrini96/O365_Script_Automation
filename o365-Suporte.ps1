@@ -1,14 +1,33 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Ferramenta de Suporte Office 365 - YEB
+    Ferramenta de Suporte Office 365
 .DESCRIPTION
     Menu interativo para gerenciamento completo de usuarios e recursos do Microsoft 365.
-.NOTES
+    Cobre criacao, offboarding, licencas, grupos, seguranca, Exchange e SharePoint.
+
+.CONFIGURACAO
+    Antes de usar, edite a secao CONFIG no inicio do script:
+    - NomeEmpresa    : Nome da sua empresa (usado em e-mails e titulos)
+    - SenhaPadrao    : Senha temporaria atribuida aos novos usuarios
+    - GrupoGeralEmail: E-mail do grupo que todos os novos usuarios recebem
+    - PaisDefault    : Codigo do pais (BR, US, PT, etc)
+
+.REQUISITOS
+    - Windows PowerShell 5.1 ou superior
+    - Modulos instalados automaticamente na primeira execucao:
+        * Microsoft.Graph
+        * ExchangeOnlineManagement
+        * Microsoft.Online.SharePoint.PowerShell
+    - Conta com perfil de Administrador Global ou equivalente no tenant
+
+.USO
+    1. Abra o PowerShell como Administrador
+    2. Execute: Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+    3. Execute: .\O365-Suporte.ps1
+
+.NOTAS
     Versao      : 4.0.0
-    Autor       : YEB Suporte TI
-    Criado em   : 2026
-    Requer      : PowerShell 5.1+, Microsoft Graph SDK v2+, ExchangeOnlineManagement v3+
 #>
 
 Set-StrictMode -Version Latest
@@ -19,8 +38,12 @@ $ErrorActionPreference = 'Stop'
 # =============================================================
 $Script:CONFIG = @{
     Versao             = '4.0.0'
-    SenhaPadrao        = 'Yeb9034##'
-    GrupoGeralEmail    = 'yebgeral@yeb.com.br'
+    # -------------------------------------------------------
+    # CONFIGURACOES - altere os valores abaixo para sua empresa
+    # -------------------------------------------------------
+    NomeEmpresa        = 'Sua Empresa'              # TODO: nome da empresa (usado em e-mails e banner)
+    SenhaPadrao        = 'Suporte@2024'             # TODO: senha padrao de criacao de usuarios
+    GrupoGeralEmail    = 'geral@suaempresa.com.br'  # TODO: e-mail do grupo geral do tenant
     PaisDefault        = 'BR'
     LicensaPartNames   = @(
         'O365_BUSINESS_ESSENTIALS',
@@ -54,7 +77,7 @@ function Show-Banner {
     Write-Host ""
     Write-Host "  +========================================================+" -ForegroundColor Cyan
     Write-Host "  |                                                        |" -ForegroundColor Cyan
-    Write-Host "  |        YEB - FERRAMENTA DE SUPORTE OFFICE 365         |" -ForegroundColor Cyan
+    Write-Host "  |     $($Script:CONFIG.NomeEmpresa) - SUPORTE OFFICE 365          |" -ForegroundColor Cyan
     Write-Host ('  |                    Versao ' + $Script:CONFIG.Versao + '                      |') -ForegroundColor Cyan
     Write-Host "  |                                                        |" -ForegroundColor Cyan
     Write-Host "  +========================================================+" -ForegroundColor Cyan
@@ -453,15 +476,15 @@ function New-UsuarioO365 {
         } -ErrorAction Stop | Out-Null
         Write-Log "Licenca atribuida." 'SUCESSO'
     } catch { Write-Log "Erro licenca: $($_.Exception.Message)" 'AVISO' }
-    Write-Host "  Adicionando ao grupo Yeb Geral..." -ForegroundColor Gray
+    Write-Host "  Adicionando ao grupo $($Script:CONFIG.GrupoGeralEmail)..." -ForegroundColor Gray
     try {
         $g = Get-MgGroup -Filter "mail eq '$($Script:CONFIG.GrupoGeralEmail)'" -ErrorAction Stop | Select-Object -First 1
         if ($null -ne $g) {
             New-MgGroupMemberByRef -GroupId $g.Id -BodyParameter @{
                 '@odata.id' = "https://graph.microsoft.com/v1.0/directoryObjects/$($novo.Id)"
             } -ErrorAction Stop
-            Write-Log "Adicionado ao Yeb Geral." 'SUCESSO'
-        } else { Write-Log "Grupo Yeb Geral nao encontrado." 'AVISO' }
+            Write-Log "Adicionado ao grupo geral." 'SUCESSO'
+        } else { Write-Log "Grupo geral nao encontrado. Verifique GrupoGeralEmail no CONFIG." 'AVISO' }
     } catch { Write-Log "Erro grupo: $($_.Exception.Message)" 'AVISO' }
     Write-Log "ACAO: Criacao - $upn - $nExib" 'AUDITORIA'
     Write-Host ""; Show-Separador
@@ -1288,15 +1311,15 @@ function Invoke-OnboardingCompleto {
         } -ErrorAction Stop | Out-Null
         Write-Log "Licenca atribuida." 'SUCESSO'
     } catch { Write-Log "Erro licenca: $($_.Exception.Message)" 'AVISO' }
-    Write-Host "  [3/5] Grupo Yeb Geral..." -ForegroundColor Gray
+    Write-Host "  [3/5] Adicionando ao grupo geral..." -ForegroundColor Gray
     try {
         $gG = Get-MgGroup -Filter "mail eq '$($Script:CONFIG.GrupoGeralEmail)'" -ErrorAction Stop | Select-Object -First 1
         if ($null -ne $gG) {
             New-MgGroupMemberByRef -GroupId $gG.Id -BodyParameter @{
                 '@odata.id' = "https://graph.microsoft.com/v1.0/directoryObjects/$($novo.Id)"
             } -ErrorAction Stop
-            Write-Log "Adicionado ao Yeb Geral." 'SUCESSO'
-        } else { Write-Log "Grupo Yeb Geral nao encontrado." 'AVISO' }
+            Write-Log "Adicionado ao grupo geral." 'SUCESSO'
+        } else { Write-Log "Grupo geral nao encontrado. Verifique GrupoGeralEmail no CONFIG." 'AVISO' }
     } catch { Write-Log "Erro grupo: $($_.Exception.Message)" 'AVISO' }
     Write-Host "  [4/5] Grupos adicionais? [S/N]: " -NoNewline -ForegroundColor Gray
     if ((Read-Host) -match '^[Ss]$') {
@@ -1320,11 +1343,11 @@ function Invoke-OnboardingCompleto {
     }
     Write-Host "  [5/5] Enviando e-mail de boas-vindas..." -ForegroundColor Gray
     try {
-        $corpo = "Ola $pNome,<br><br>Seja bem-vindo(a) a YEB!<br><br>Suas credenciais:<br><b>E-mail:</b> $upn<br><b>Senha inicial:</b> $($Script:CONFIG.SenhaPadrao)<br><br>Altere sua senha no primeiro acesso.<br><br>Att,<br>TI - YEB"
+        $corpo = "Ola $pNome,<br><br>Seja bem-vindo(a) a $($Script:CONFIG.NomeEmpresa)!<br><br>Suas credenciais:<br><b>E-mail:</b> $upn<br><b>Senha inicial:</b> $($Script:CONFIG.SenhaPadrao)<br><br>Altere sua senha no primeiro acesso.<br><br>Att,<br>TI - $($Script:CONFIG.NomeEmpresa)"
         $ctx = Get-MgContext
         Send-MgUserMail -UserId $ctx.Account -BodyParameter @{
             Message = @{
-                Subject      = "Bem-vindo(a) a YEB - Credenciais de acesso"
+                Subject      = "Bem-vindo(a) a $($Script:CONFIG.NomeEmpresa) - Credenciais de acesso"
                 Body         = @{ ContentType = "HTML"; Content = $corpo }
                 ToRecipients = @(@{ EmailAddress = @{ Address = $eContato } })
             }
@@ -1966,7 +1989,7 @@ function Get-SPODetalhesSite {
     Show-Banner; Show-Titulo "SHAREPOINT - DETALHES DO SITE"
     if (-not (Connect-SharePointOnline)) { PauseMenu; return }
 
-    Write-Host "  URL do site (ex: https://empresa.sharepoint.com/sites/nome): " -NoNewline -ForegroundColor White
+    Write-Host "  URL do site (ex: https://seutenante.sharepoint.com/sites/nome): " -NoNewline -ForegroundColor White
     $url = Read-Host
     if ([string]::IsNullOrWhiteSpace($url)) { Write-Log "URL invalida." 'AVISO'; PauseMenu; return }
 
@@ -2244,7 +2267,7 @@ function Get-SPOOneDriveUsuarios {
 
     Write-Host ""; Write-Host "  Buscando OneDrives..." -ForegroundColor Gray
     try {
-        $ods = @(Get-SPOSite -IncludePersonalSite $true -Template SPSPERS -Limit All)
+        $ods = @(Get-SPOSite -IncludePersonalSite $true -Template SPSPERS -Limit All) -ErrorAction Stop
 
         if ($ord.Trim() -eq '2') { $ods = $ods | Sort-Object Owner }
         else { $ods = $ods | Sort-Object { Get-SPOSiteStorage -Site $_ } -Descending }
