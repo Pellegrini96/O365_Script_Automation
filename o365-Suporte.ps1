@@ -77,8 +77,8 @@ function Show-Banner {
     Write-Host ""
     Write-Host "  +========================================================+" -ForegroundColor Cyan
     Write-Host "  |                                                        |" -ForegroundColor Cyan
-    Write-Host "  |     $($Script:CONFIG.NomeEmpresa) - SUPORTE OFFICE 365          |" -ForegroundColor Cyan
-    Write-Host ('  |                    Versao ' + $Script:CONFIG.Versao + '                      |') -ForegroundColor Cyan
+    Write-Host "  | $($Script:CONFIG.NomeEmpresa) - SUPORTE OFFICE 365     |" -ForegroundColor Cyan
+    Write-Host (' |   Versao ' + $Script:CONFIG.Versao                     |') -ForegroundColor Cyan
     Write-Host "  |                                                        |" -ForegroundColor Cyan
     Write-Host "  +========================================================+" -ForegroundColor Cyan
     Write-Host ""
@@ -2472,9 +2472,9 @@ function Get-SPORelatorioArmazenamento {
 function Show-MenuPrincipal {
     Show-Banner; Show-Header
     Write-Host "  +============================================+" -ForegroundColor Cyan
-    Write-Host "  |            MENU PRINCIPAL                 |" -ForegroundColor Cyan
+    Write-Host "  |            MENU PRINCIPAL                |" -ForegroundColor Cyan
     Write-Host "  +============================================+" -ForegroundColor Cyan
-    Write-Host "  |                                           |" -ForegroundColor Cyan
+    Write-Host "  |                                          |" -ForegroundColor Cyan
     Write-Host "  |  [1]  Gestao de Usuarios                 |" -ForegroundColor White
     Write-Host "  |  [2]  Gestao de Licencas                 |" -ForegroundColor White
     Write-Host "  |  [3]  Gestao de Grupos                   |" -ForegroundColor White
@@ -2503,17 +2503,17 @@ function Start-MenuSharePoint {
         Write-Host "  |  [1]  Visao geral do tenant              |" -ForegroundColor White
         Write-Host "  |  [2]  Listar todos os sites              |" -ForegroundColor White
         Write-Host "  |  [3]  Top consumidores de espaco         |" -ForegroundColor White
-        Write-Host "  |  [4]  Detalhes de um site               |" -ForegroundColor White
-        Write-Host "  |  [5]  Alterar quota de um site          |" -ForegroundColor White
-        Write-Host "  |  [6]  Bloquear / Desbloquear site       |" -ForegroundColor White
-        Write-Host "  |  [7]  Gerenciar proprietario do site    |" -ForegroundColor White
-        Write-Host "  |  [8]  Sites inativos                    |" -ForegroundColor White
-        Write-Host "  |  [9]  OneDrive por usuario              |" -ForegroundColor White
-        Write-Host "  |  [10] Excluir site                      |" -ForegroundColor White
-        Write-Host "  |  [11] Compartilhamento externo          |" -ForegroundColor White
-        Write-Host "  |  [12] Relatorio completo armazenamento  |" -ForegroundColor White
-        Write-Host "  |                                         |" -ForegroundColor Magenta
-        Write-Host "  |  [0]  Voltar                            |" -ForegroundColor DarkGray
+        Write-Host "  |  [4]  Detalhes de um site                |" -ForegroundColor White
+        Write-Host "  |  [5]  Alterar quota de um site           |" -ForegroundColor White
+        Write-Host "  |  [6]  Bloquear / Desbloquear site        |" -ForegroundColor White
+        Write-Host "  |  [7]  Gerenciar proprietario do site     |" -ForegroundColor White
+        Write-Host "  |  [8]  Sites inativos                     |" -ForegroundColor White
+        Write-Host "  |  [9]  OneDrive por usuario               |" -ForegroundColor White
+        Write-Host "  |  [10] Excluir site                       |" -ForegroundColor White
+        Write-Host "  |  [11] Compartilhamento externo           |" -ForegroundColor White
+        Write-Host "  |  [12] Relatorio completo armazenamento   |" -ForegroundColor White
+        Write-Host "  |                                          |" -ForegroundColor Magenta
+        Write-Host "  |  [0]  Voltar                             |" -ForegroundColor DarkGray
         Write-Host "  +-----------------------------------------+" -ForegroundColor Magenta
         Write-Host ""; Write-Host "  Escolha: " -NoNewline -ForegroundColor White
         switch ((Read-Host).Trim()) {
